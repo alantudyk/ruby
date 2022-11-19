@@ -3523,13 +3523,19 @@ sort_2(const void *ap, const void *bp, void *dummy)
 
 /* Radix_Sort */
 
+#define RSORT_GUARD SIZEOF_VALUE == 8
+
+#if RSORT_GUARD
+
 #define YORINOBU   8  /* radix bit-length */
 #define ARASAKA    8  /* number of passes on uint64_t, 64 / YORINOBU + (64 % YORINOBU > 0) */
 #define TOWER    256  /* radix, number of values in the range 0...(1 << YORINOBU) */
 
 typedef struct rsort_double_t { uint64_t z; VALUE v; } rsort_double_t;
 
-static void rsort_calc_offsets(uint64_t (*F)[TOWER], int *skip, int *last, long l) {
+static void
+rsort_calc_offsets(uint64_t (*F)[TOWER], int *skip, int *last, long l)
+{
 
     for (int i = 0; i < ARASAKA; i++) {
         uint64_t x = 0, t, *o = F[i];
@@ -3544,7 +3550,9 @@ static void rsort_calc_offsets(uint64_t (*F)[TOWER], int *skip, int *last, long 
     }
 }
 
-static int rsort_double(VALUE *const p, const long l) {
+static int
+rsort_double(VALUE *const p, const long l)
+{
 
     rsort_double_t *const _r = malloc(l * 2 * sizeof(rsort_double_t)),
                           *a = _r, *b = a + l, *t;
@@ -3585,9 +3593,13 @@ static int rsort_double(VALUE *const p, const long l) {
     free(_r); return 0;
 }
 
-static int rsort(void *const _p, const long l) {
+#endif
 
-    if (SIZEOF_VALUE != 8) return 1; /* No idea how it works on 32-bit platforms. */
+static int
+rsort(void *const _p, const long l)
+{
+
+#if RSORT_GUARD
 
     if (!FIXNUM_P(*(VALUE *)_p)) {
         if (!RB_FLOAT_TYPE_P(*(VALUE *)_p)) return 1;
@@ -3627,11 +3639,22 @@ static int rsort(void *const _p, const long l) {
     if (a != _p) { memcpy(_p, a, SIZEOF_VALUE * l); b = a; }
 
     free(b); return 0;
+
+#else
+
+    return 1;
+
+#endif
+
 }
 
+#if RSORT_GUARD
 #undef YORINOBU
 #undef ARASAKA
 #undef TOWER
+#endif
+
+#undef RSORT_GUARD
 
 /*
  *  call-seq:
@@ -3690,7 +3713,7 @@ rb_ary_sort_bang(VALUE ary)
         data.cmp_opt.opt_inited = 0;
         const int is_bg = rb_block_given_p();
         RARRAY_PTR_USE(tmp, ptr, {
-            if ((len < 1000 || is_bg) || rsort(ptr, len))
+            if (len < 1000 || is_bg || rsort(ptr, len))
                 ruby_qsort(ptr, len, sizeof(VALUE), is_bg ? sort_1 : sort_2, &data);
         }); /* WB: no new reference */
         rb_ary_modify(ary);
