@@ -3596,21 +3596,22 @@ rsort_double(VALUE *const p, const long l)
 #endif
 
 static int
-rsort(void *const _p, const long l)
+rsort(VALUE *const p, const long l)
 {
 
 #if RSORT_GUARD
 
-    if (!FIXNUM_P(*(VALUE *)_p)) {
-        if (!RB_FLOAT_TYPE_P(*(VALUE *)_p)) return 1;
-        return rsort_double(_p, l);
+    if (!FIXNUM_P(*p)) {
+        if (!RB_FLOAT_TYPE_P(*p)) return 1;
+        return rsort_double(p, l);
     }
 
     uint64_t F[NUM_PASSES][RADIX] = {{0}},
-             *a = malloc(SIZEOF_VALUE * l), *pa = a,
-             *b = _p, *pp = _p, *const P = pp + l,
+             *_r = malloc(SIZEOF_VALUE * l * 2),
+             *a = _r, *pa = a, *PA, *b = a + l,
+             *pp = (uint64_t *)p, *const P = pp + l,
              prev = 0;
-    if (a == NULL) { return 1; }
+    if (_r == NULL) return 1;
 
     {
         _Bool is_unordered = 0;
@@ -3623,19 +3624,19 @@ rsort(void *const _p, const long l)
                 is_unordered |= prev > (*pa = *pp ^ ((uint64_t)1 << 63)), prev = *pa;
                 for (int i = 0; i < NUM_PASSES; i++)
                     F[i][(uint8_t)(*pa >> i * RDX_BITS)]++;
-                if (!FIXNUM_P(*pp++)) { free(a); return 1; }
+                if (!FIXNUM_P(*pp++)) { free(_r); return 1; }
             }
 
         }
 
-        if (!is_unordered) { free(a); return 0; }
+        if (!is_unordered) { free(_r); return 0; }
     }
 
     for (; pp < P; pa++) {
         *pa = *pp ^ ((uint64_t)1 << 63);
         for (int i = 0; i < NUM_PASSES; i++)
             F[i][(uint8_t)(*pa >> i * RDX_BITS)]++;
-        if (!FIXNUM_P(*pp++)) { free(a); return 1; }
+        if (!FIXNUM_P(*pp++)) { free(_r); return 1; }
     }
 
     int skip[NUM_PASSES] = {0}, last = 0; rsort_calc_offsets(F, skip, &last, l);
@@ -3644,17 +3645,15 @@ rsort(void *const _p, const long l)
         if (skip[i]) continue;
         uint64_t *o = F[i];
         if (i < last)
-            for (uint64_t *p = a, *const P = p + l; p < P; p++)
-                b[o[(uint8_t)(*p >> i * RDX_BITS)]++] = *p;
+            for (pa = a, PA = pa + l; pa < PA; pa++)
+                b[o[(uint8_t)(*pa >> i * RDX_BITS)]++] = *pa;
         else
-            for (uint64_t *p = a, *const P = p + l; p < P; p++)
-                b[o[(uint8_t)(*p >> i * RDX_BITS)]++] = *p ^ ((uint64_t)1 << 63);
+            for (pa = a, PA = pa + l; pa < PA; pa++)
+                p[o[(uint8_t)(*pa >> i * RDX_BITS)]++] = (VALUE)(*pa ^ ((uint64_t)1 << 63));
         o = a, a = b, b = o;
     }
 
-    if (a != _p) { memcpy(_p, a, SIZEOF_VALUE * l); b = a; }
-
-    free(b); return 0;
+    free(_r); return 0;
 
 #else
 
