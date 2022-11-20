@@ -3607,20 +3607,36 @@ rsort(void *const _p, const long l)
     }
 
     uint64_t F[NUM_PASSES][RADIX] = {{0}},
-             *a = malloc(SIZEOF_VALUE * l), *b = _p, prev = 0;
-    if (a == NULL) { return 1; } _Bool is_unordered = 0;
+             *a = malloc(SIZEOF_VALUE * l), *pa = a,
+             *b = _p, *pp = _p, *const P = pp + l,
+             prev = 0;
+    if (a == NULL) { return 1; }
 
-    for (uint64_t *p = b, *p2 = a, *const P = p + l; p < P; p2++) {
-        is_unordered |= prev > (*p2 = *p ^ ((uint64_t)1 << 63)), prev = *p2;
-        for (int i = 0; i < NUM_PASSES; i++)
-            F[i][(uint8_t)(*p2 >> i * RDX_BITS)]++;
-        if (!FIXNUM_P(*p++)) {
-            free(a);
-            return 1;
+    {
+        _Bool is_unordered = 0;
+
+        while (!is_unordered && pp < P) {
+
+            uint64_t *PP = pp + 100; if (PP > P) PP = P;
+
+            for (; pp < PP; pa++) {
+                is_unordered |= prev > (*pa = *pp ^ ((uint64_t)1 << 63)), prev = *pa;
+                for (int i = 0; i < NUM_PASSES; i++)
+                    F[i][(uint8_t)(*pa >> i * RDX_BITS)]++;
+                if (!FIXNUM_P(*pp++)) { free(a); return 1; }
+            }
+
         }
+
+        if (!is_unordered) { free(a); return 0; }
     }
 
-    if (!is_unordered) { free(a); return 0; }
+    for (; pp < P; pa++) {
+        *pa = *pp ^ ((uint64_t)1 << 63);
+        for (int i = 0; i < NUM_PASSES; i++)
+            F[i][(uint8_t)(*pa >> i * RDX_BITS)]++;
+        if (!FIXNUM_P(*pp++)) { free(a); return 1; }
+    }
 
     int skip[NUM_PASSES] = {0}, last = 0; rsort_calc_offsets(F, skip, &last, l);
 
