@@ -3524,11 +3524,12 @@ sort_2(const void *ap, const void *bp, void *dummy)
 /* Radix_Sort */
 
 #define RSORT_GUARD SIZEOF_VALUE == 8
+#define RSORT_THRESHOLD 1000
 
 #if RSORT_GUARD
 
 #define RDX_BITS   8  /* radix bit-length */
-#define NUM_PASSES    8  /* number of passes on uint64_t, 64 / RDX_BITS + (64 % RDX_BITS > 0) */
+#define NUM_PASSES 8  /* number of passes on uint64_t, 64 / RDX_BITS + (64 % RDX_BITS > 0) */
 #define RADIX    256  /* radix, number of values in the range 0...(1 << RDX_BITS) */
 
 typedef struct rsort_double_t { uint64_t z; VALUE v; } rsort_double_t;
@@ -3657,8 +3658,7 @@ rsort(VALUE *const p, const long l)
 
 }
 
-#undef  RSORT_GUARD
-#define RSORT_THRESHOLD 1000
+#undef RSORT_GUARD
 
 /*
  *  call-seq:
