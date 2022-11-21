@@ -3536,14 +3536,10 @@ typedef struct rsort_double_t { uint64_t z; VALUE v; } rsort_double_t;
 static void
 rsort_calc_offsets(uint64_t (*F)[RADIX], int *skip, int *last, long l)
 {
-
     for (int i = 0; i < NUM_PASSES; i++) {
         uint64_t x = 0, t, *o = F[i];
         for (int j = 0; j < RADIX; j++) {
-            if ((t = o[j]) == (uint64_t)l) {
-                skip[i] = 1;
-                break;
-            }
+            if ((t = o[j]) == (uint64_t)l) { skip[i] = 1; break; }
             x = (o[j] = x) + t;
         }
         if (skip[i] == 0) *last = i;
@@ -3553,7 +3549,6 @@ rsort_calc_offsets(uint64_t (*F)[RADIX], int *skip, int *last, long l)
 static int
 rsort_double(VALUE *const p, const long l)
 {
-
     rsort_double_t *const _r = malloc(l * 2 * sizeof(rsort_double_t)),
                           *a = _r, *b = a + l, *t;
     if (_r == NULL) { return 1; } _Bool is_unordered = 0;
@@ -3615,20 +3610,15 @@ rsort(VALUE *const p, const long l)
 
     {
         _Bool is_unordered = 0;
-
         while (!is_unordered && pp < P) {
-
             uint64_t *PP = pp + 100; if (PP > P) PP = P;
-
             for (; pp < PP; pa++) {
                 is_unordered |= prev > (*pa = *pp ^ ((uint64_t)1 << 63)), prev = *pa;
                 for (int i = 0; i < NUM_PASSES; i++)
                     F[i][(uint8_t)(*pa >> i * RDX_BITS)]++;
                 if (!FIXNUM_P(*pp++)) { free(_r); return 1; }
             }
-
         }
-
         if (!is_unordered) { free(_r); return 0; }
     }
 
@@ -3655,6 +3645,10 @@ rsort(VALUE *const p, const long l)
 
     free(_r); return 0;
 
+#undef RDX_BITS
+#undef NUM_PASSES
+#undef RADIX
+
 #else
 
     return 1;
@@ -3662,12 +3656,6 @@ rsort(VALUE *const p, const long l)
 #endif
 
 }
-
-#if RSORT_GUARD
-#undef RDX_BITS
-#undef NUM_PASSES
-#undef RADIX
-#endif
 
 #undef RSORT_GUARD
 
