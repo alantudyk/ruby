@@ -3657,7 +3657,8 @@ rsort(VALUE *const p, const long l)
 
 }
 
-#undef RSORT_GUARD
+#undef  RSORT_GUARD
+#define RSORT_THRESHOLD 1000
 
 /*
  *  call-seq:
@@ -3716,7 +3717,7 @@ rb_ary_sort_bang(VALUE ary)
         data.cmp_opt.opt_inited = 0;
         const int is_bg = rb_block_given_p();
         RARRAY_PTR_USE(tmp, ptr, {
-            if (len < 1000 || is_bg || rsort(ptr, len))
+            if (is_bg || len < RSORT_THRESHOLD || rsort(ptr, len))
                 ruby_qsort(ptr, len, sizeof(VALUE), is_bg ? sort_1 : sort_2, &data);
         }); /* WB: no new reference */
         rb_ary_modify(ary);
@@ -3761,6 +3762,8 @@ rb_ary_sort_bang(VALUE ary)
     ary_verify(ary);
     return ary;
 }
+
+#undef RSORT_THRESHOLD
 
 /*
  *  call-seq:
