@@ -1,8 +1,8 @@
 #!/bin/ruby
 
 srand 0
-r = $*[0] == 'sorted' ? [-1e100] * 5_000_000 + [1e100] * 5_000_000 :
-                        (Array.new 1e7.to_i do rand -1e100...1e100 end)
+r = Array.new 1e7.to_i do rand -1e100...1e100 end
+r.sort! { _1 <=> _2 } if $*[0] == 'sorted'
 
 puts
 

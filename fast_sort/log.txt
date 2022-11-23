@@ -20,11 +20,11 @@ $ ./fixnums.rb
 
 $ ../build/miniruby flonums.rb
 
-	Run #1: 0.517 s
-	Run #2: 0.536 s
-	Run #3: 0.533 s
-	Run #4: 0.512 s
-	Run #5: 0.527 s
+	Run #1: 0.361 s
+	Run #2: 0.378 s
+	Run #3: 0.377 s
+	Run #4: 0.357 s
+	Run #5: 0.371 s
 
 $ ./flonums.rb
 
