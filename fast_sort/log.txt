@@ -34,3 +34,36 @@ $ ./flonums.rb
 	Run #4: 3.837 s
 	Run #5: 3.844 s
 
+# 12.12.2022
+
+$ ../build/miniruby fix_1M.rb
+
+	Run #1: 0.264 s
+	Run #2: 0.281 s
+	Run #3: 0.276 s
+	Run #4: 0.274 s
+	Run #5: 0.275 s
+
+$ ./fix_1M.rb
+
+	Run #1: 2.202 s
+	Run #2: 2.248 s
+	Run #3: 2.231 s
+	Run #4: 2.344 s
+	Run #5: 2.230 s
+
+$ ../build/miniruby fix_1K.rb
+
+	Run #1: 0.247 s
+	Run #2: 0.264 s
+	Run #3: 0.258 s
+	Run #4: 0.256 s
+	Run #5: 0.256 s
+
+$ ./fix_1K.rb
+
+	Run #1: 1.735 s
+	Run #2: 1.784 s
+	Run #3: 1.738 s
+	Run #4: 1.787 s
+	Run #5: 1.739 s
