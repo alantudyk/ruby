@@ -52,13 +52,15 @@ $ ./fix_1M.rb
 	Run #4: 2.344 s
 	Run #5: 2.230 s
 
+# 15.12.2022
+
 $ ../build/miniruby fix_1K.rb
 
-	Run #1: 0.213 s
-	Run #2: 0.231 s
-	Run #3: 0.223 s
-	Run #4: 0.223 s
-	Run #5: 0.225 s
+	Run #1: 0.125 s
+	Run #2: 0.147 s
+	Run #3: 0.137 s
+	Run #4: 0.137 s
+	Run #5: 0.138 s
 
 $ ./fix_1K.rb
 
